@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniversalNFTEEE | Cross-Chain Protocol</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      padding-top: 40px;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #8b92b0;
+      font-weight: 400;
+    }
+
+    .status-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .status-item {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .status-label {
+      font-size: 0.85rem;
+      color: #8b92b0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .status-value {
+      font-size: 1.1rem;
+      color: #ffffff;
+      font-weight: 500;
+      word-break: break-all;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
+
+    .status-connected {
+      background: #10b981;
+    }
+
+    .status-disconnected {
+      background: #ef4444;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .action-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .action-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .action-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(102, 126, 234, 0.5);
+      box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+    }
+
+    .action-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .action-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #ffffff;
+    }
+
+    .action-description {
+      font-size: 0.95rem;
+      color: #8b92b0;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 16px 40px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+    }
+
+    .contract-info {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 25px;
+      margin-top: 40px;
+    }
+
+    .contract-info h3 {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+
+    .contract-address {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #8b92b0;
+      word-break: break-all;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #667eea;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1a1f3a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-title {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #667eea;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: white;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    input::placeholder {
+      color: #8b92b0;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .modal-buttons .btn {
+      flex: 1;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 30px 0;
+      text-align: center;
+      color: #8b92b0;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>UniversalNFTEEE</h1>
+      <p class="subtitle">Mint Once, Launch Everywhere</p>
+    </header>
+
+    <div class="status-card">
+      <div class="status-item">
+        <div class="status-label">Connection Status</div>
+        <div class="status-value">
+          <span class="status-indicator status-disconnected" id="statusIndicator"></span>
+          <span id="statusText">Connecting...</span>
+        </div>
+      </div>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">Network</div>
+          <div class="status-value" id="networkText">-</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Wallet Address</div>
+          <div class="status-value" id="accountText">-</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Chain ID</div>
+          <div class="status-value" id="chainIdText">-</div>
+        </div>
+      </div>
+      <div style="margin-top: 20px; text-align: center;">
+        <button id="switchNetworkBtn" class="btn btn-secondary" style="display: none;">
+          Switch to ZetaChain Testnet
+        </button>
+      </div>
+    </div>
+
+    <div class="actions-grid">
+      <div class="action-card">
+        <div class="action-icon">🎨</div>
+        <h2 class="action-title">Mint NFT</h2>
+        <p class="action-description">Create a new Universal NFT on ZetaChain. Your NFT can travel across multiple blockchains.</p>
+        <button id="mintBtn" class="btn">Mint NFT</button>
+      </div>
+
+      <div class="action-card">
+        <div class="action-icon">🌐</div>
+        <h2 class="action-title">Send Cross-Chain</h2>
+        <p class="action-description">Transfer your NFT to another blockchain. Experience true omnichain interoperability.</p>
+        <button id="sendBtn" class="btn">Send Cross-Chain</button>
+      </div>
+    </div>
+
+    <div class="contract-info">
+      <h3>📜 Smart Contract</h3>
+      <div class="status-label">ZetaChain Athens Testnet</div>
+      <div class="contract-address">0x994DeD1a6A74D82f35e148EE3De2558132870b27</div>
+    </div>
+
+    <div class="contract-info" id="nftDisplay" style="display: none;">
+      <h3>🎨 Your NFTs</h3>
+      <div id="nftList" class="status-label">Loading...</div>
+    </div>
+  </div>
+
+  <div id="sendModal" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">Send Cross-Chain</h2>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; color: #8b92b0; font-size: 0.9rem;">Your NFTs:</label>
+        <div id="nftInfo" style="color: #667eea; font-size: 0.9rem; margin-bottom: 10px;">Loading...</div>
+        <select id="tokenIdInput" style="width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: white; font-size: 1rem;">
+          <option value="">Select an NFT to send</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; color: #8b92b0; font-size: 0.9rem;">Destination:</label>
+        <select id="destChainInput" style="width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: white; font-size: 1rem;">
+          <option value="11155111">Sepolia Testnet (Ethereum)</option>
+        </select>
+      </div>
+      
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn" onclick="confirmSend()">Send NFT</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Powered by ZetaChain Universal Apps | Built for Cross-Chain Future</p>
+  </footer>
+
+  <script>
+    const contractAddress = "0x994DeD1a6A74D82f35e148EE3De2558132870b27";
+    const ZETA_TESTNET_CHAIN_ID = 7001;
+    const abi = [
+      {"inputs": [], "stateMutability": "nonpayable", "type": "constructor"},
+      {"inputs": [{"internalType": "address", "name": "sender", "type": "address"}, {"internalType": "uint256", "name": "tokenId", "type": "uint256"}, {"internalType": "address", "name": "owner", "type": "address"}], "name": "ERC721IncorrectOwner", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "operator", "type": "address"}, {"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "ERC721InsufficientApproval", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "approver", "type": "address"}], "name": "ERC721InvalidApprover", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "operator", "type": "address"}], "name": "ERC721InvalidOperator", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "owner", "type": "address"}], "name": "ERC721InvalidOwner", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "receiver", "type": "address"}], "name": "ERC721InvalidReceiver", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "sender", "type": "address"}], "name": "ERC721InvalidSender", "type": "error"},
+      {"inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "ERC721NonexistentToken", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "owner", "type": "address"}], "name": "OwnableInvalidOwner", "type": "error"},
+      {"inputs": [{"internalType": "address", "name": "account", "type": "address"}], "name": "OwnableUnauthorizedAccount", "type": "error"},
+      {"inputs": [], "name": "Unauthorized", "type": "error"},
+      {"anonymous": false, "inputs": [{"indexed": true, "internalType": "address", "name": "owner", "type": "address"}, {"indexed": true, "internalType": "address", "name": "approved", "type": "address"}, {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "Approval", "type": "event"},
+      {"anonymous": false, "inputs": [{"indexed": true, "internalType": "address", "name": "owner", "type": "address"}, {"indexed": true, "internalType": "address", "name": "operator", "type": "address"}, {"indexed": false, "internalType": "bool", "name": "approved", "type": "bool"}], "name": "ApprovalForAll", "type": "event"},
+      {"anonymous": false, "inputs": [{"indexed": false, "internalType": "uint256", "name": "tokenId", "type": "uint256"}, {"indexed": false, "internalType": "address", "name": "owner", "type": "address"}, {"indexed": false, "internalType": "string", "name": "reason", "type": "string"}], "name": "CrossChainReverted", "type": "event"},
+      {"anonymous": false, "inputs": [{"indexed": true, "internalType": "address", "name": "previousOwner", "type": "address"}, {"indexed": true, "internalType": "address", "name": "newOwner", "type": "address"}], "name": "OwnershipTransferred", "type": "event"},
+      {"anonymous": false, "inputs": [{"indexed": true, "internalType": "address", "name": "to", "type": "address"}, {"indexed": false, "internalType": "uint256", "name": "tokenId", "type": "uint256"}, {"indexed": false, "internalType": "uint256", "name": "fromChain", "type": "uint256"}], "name": "ReceivedCrossChain", "type": "event"},
+      {"anonymous": false, "inputs": [{"indexed": true, "internalType": "address", "name": "from", "type": "address"}, {"indexed": false, "internalType": "uint256", "name": "tokenId", "type": "uint256"}, {"indexed": false, "internalType": "uint256", "name": "destChain", "type": "uint256"}], "name": "SentCrossChain", "type": "event"},
+      {"anonymous": false, "inputs": [{"indexed": true, "internalType": "address", "name": "from", "type": "address"}, {"indexed": true, "internalType": "address", "name": "to", "type": "address"}, {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "Transfer", "type": "event"},
+      {"inputs": [{"internalType": "address", "name": "to", "type": "address"}, {"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "approve", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "owner", "type": "address"}], "name": "balanceOf", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [], "name": "gateway", "outputs": [{"internalType": "contract IGatewayZEVM", "name": "", "type": "address"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "getApproved", "outputs": [{"internalType": "address", "name": "", "type": "address"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "owner", "type": "address"}, {"internalType": "address", "name": "operator", "type": "address"}], "name": "isApprovedForAll", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "to", "type": "address"}], "name": "mint", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "nonpayable", "type": "function"},
+      {"inputs": [], "name": "name", "outputs": [{"internalType": "string", "name": "", "type": "string"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [], "name": "owner", "outputs": [{"internalType": "address", "name": "", "type": "address"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "ownerOf", "outputs": [{"internalType": "address", "name": "", "type": "address"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "from", "type": "address"}, {"internalType": "address", "name": "to", "type": "address"}, {"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "safeTransferFrom", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+      {"inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}, {"internalType": "uint256", "name": "destChainId", "type": "uint256"}], "name": "sendCrossChain", "outputs": [], "stateMutability": "payable", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "operator", "type": "address"}, {"internalType": "bool", "name": "approved", "type": "bool"}], "name": "setApprovalForAll", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+      {"inputs": [{"internalType": "bytes4", "name": "interfaceId", "type": "bytes4"}], "name": "supportsInterface", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [], "name": "symbol", "outputs": [{"internalType": "string", "name": "", "type": "string"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [], "name": "tokenCounter", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "tokenURI", "outputs": [{"internalType": "string", "name": "", "type": "string"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "owner", "type": "address"}], "name": "tokensOfOwner", "outputs": [{"internalType": "uint256[]", "name": "", "type": "uint256[]"}], "stateMutability": "view", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "from", "type": "address"}, {"internalType": "address", "name": "to", "type": "address"}, {"internalType": "uint256", "name": "tokenId", "type": "uint256"}], "name": "transferFrom", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+      {"inputs": [{"internalType": "address", "name": "newOwner", "type": "address"}], "name": "transferOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function"}
+    ];
+
+    let contract, signer;
+
+    function closeModal() {
+      document.getElementById('sendModal').classList.remove('active');
+    }
+
+    async function confirmSend() {
+      const tokenIdValue = document.getElementById('tokenIdInput').value;
+      const destChainValue = document.getElementById('destChainInput').value;
+      
+      if (!tokenIdValue || !destChainValue) {
+        alert('Please select an NFT and destination chain');
+        return;
+      }
+      
+      const tokenId = parseInt(tokenIdValue);
+      const destChain = parseInt(destChainValue);
+      
+      if (isNaN(tokenId) || isNaN(destChain)) {
+        alert('Invalid selection');
+        return;
+      }
+
+      closeModal();
+      
+      try {
+        updateStatus('Sending cross-chain...', false);
+        const tx = await contract.sendCrossChain(tokenId, destChain, { value: ethers.parseEther("0.01") });
+        updateStatus('Confirming transaction...', false);
+        await tx.wait();
+        alert('✅ NFT sent cross-chain successfully!');
+        updateStatus('Connected', true);
+      } catch (error) {
+        console.error("Send error:", error);
+        updateStatus('Send failed', false);
+        alert('❌ Send failed: ' + (error.reason || error.message));
+      }
+    }
+
+    function updateStatus(text, connected) {
+      document.getElementById('statusText').textContent = text;
+      const indicator = document.getElementById('statusIndicator');
+      indicator.className = 'status-indicator ' + (connected ? 'status-connected' : 'status-disconnected');
+    }
+
+    async function loadUserNFTs() {
+      try {
+        const userAddress = await signer.getAddress();
+        const myTokens = await contract.tokensOfOwner(userAddress);
+        
+        const tokenSelect = document.getElementById('tokenIdInput');
+        
+        // Clear existing options
+        tokenSelect.innerHTML = '';
+        
+        if (myTokens.length === 0) {
+          tokenSelect.innerHTML = '<option value="">No NFTs owned</option>';
+          return;
+        }
+        
+        // Add options for each NFT
+        myTokens.forEach(tokenId => {
+          const option = document.createElement('option');
+          option.value = tokenId.toString();
+          option.textContent = `NFT #${tokenId.toString()}`;
+          tokenSelect.appendChild(option);
+        });
+        
+        // Update the info text
+        document.getElementById('nftInfo').textContent = 
+          `You own ${myTokens.length} NFT(s): ${myTokens.map(id => '#' + id.toString()).join(', ')}`;
+          
+      } catch (error) {
+        console.error('Error loading NFTs:', error);
+        document.getElementById('tokenIdInput').innerHTML = '<option value="">Error loading NFTs</option>';
+      }
+    }
+
+    async function displayUserNFTs() {
+      try {
+        const userAddress = await signer.getAddress();
+        const myTokens = await contract.tokensOfOwner(userAddress);
+        
+        const nftDisplay = document.getElementById('nftDisplay');
+        const nftList = document.getElementById('nftList');
+        
+        if (myTokens.length === 0) {
+          nftDisplay.style.display = 'none';
+          return;
+        }
+        
+        nftDisplay.style.display = 'block';
+        nftList.innerHTML = `
+          <div style="color: #667eea; margin-bottom: 10px;">
+            You own ${myTokens.length} NFT${myTokens.length > 1 ? 's' : ''}
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            ${myTokens.map(tokenId => `
+              <div style="background: rgba(102, 126, 234, 0.1); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
+                <div style="color: #667eea; font-weight: 600;">NFT #${tokenId.toString()}</div>
+                <div style="color: #8b92b0; font-size: 0.8rem;">Token ID: ${tokenId.toString()}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        
+      } catch (error) {
+        console.error('Error displaying NFTs:', error);
+        document.getElementById('nftDisplay').style.display = 'none';
+      }
+    }
+
+    async function init() {
+      try {
+        if (!window.ethereum) {
+          updateStatus('MetaMask not found', false);
+          alert("Please install MetaMask!");
+          return;
+        }
+
+        updateStatus('Connecting...', false);
+        
+        await ethereum.request({ method: 'eth_requestAccounts' });
+        
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        const network = await provider.getNetwork();
+        const account = await signer.getAddress();
+        
+        // Get network name based on chain ID
+        let networkName = network.name;
+        if (Number(network.chainId) === ZETA_TESTNET_CHAIN_ID) {
+          networkName = 'ZetaChain Athens Testnet';
+        } else if (!networkName || networkName === 'unknown') {
+          networkName = 'Unknown Network';
+        }
+        
+        document.getElementById("networkText").textContent = networkName;
+        document.getElementById("accountText").textContent = account.substring(0, 6) + "..." + account.substring(38);
+        document.getElementById("chainIdText").textContent = network.chainId.toString();
+        
+        if (Number(network.chainId) !== ZETA_TESTNET_CHAIN_ID) {
+          updateStatus('Wrong network', false);
+          document.getElementById("switchNetworkBtn").style.display = "inline-block";
+          
+          document.getElementById("switchNetworkBtn").onclick = async () => {
+            try {
+              await ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x1b59' }],
+              });
+              location.reload();
+            } catch (switchError) {
+              if (switchError.code === 4902) {
+                try {
+                  await ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                      chainId: '0x1b59',
+                      chainName: 'ZetaChain Athens Testnet',
+                      nativeCurrency: { name: 'ZETA', symbol: 'ZETA', decimals: 18 },
+                      rpcUrls: ['https://zetachain-athens-evm.blockpi.network/v1/rpc/public'],
+                      blockExplorerUrls: ['https://athens.explorer.zetachain.com/']
+                    }]
+                  });
+                  location.reload();
+                } catch (addError) {
+                  alert("Failed to add network: " + addError.message);
+                }
+              }
+            }
+          };
+          return;
+        }
+        
+        updateStatus('Connected', true);
+        contract = new ethers.Contract(contractAddress, abi, signer);
+        
+        // Load and display user's NFTs
+        await displayUserNFTs();
+
+        document.getElementById("mintBtn").onclick = async () => {
+          try {
+            updateStatus('Minting NFT...', false);
+            const tx = await contract.mint(await signer.getAddress());
+            updateStatus('Confirming transaction...', false);
+            await tx.wait();
+            alert('✅ NFT minted successfully!');
+            updateStatus('Connected', true);
+            // Refresh NFT display
+            await displayUserNFTs();
+          } catch (error) {
+            console.error("Mint error:", error);
+            updateStatus('Mint failed', false);
+            alert('❌ Mint failed: ' + (error.reason || error.message));
+          }
+        };
+
+        document.getElementById("sendBtn").onclick = async () => {
+          await loadUserNFTs();
+          document.getElementById('sendModal').classList.add('active');
+        };
+
+      } catch (error) {
+        console.error("Init error:", error);
+        updateStatus('Connection failed', false);
+        alert("Initialization failed: " + error.message);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
